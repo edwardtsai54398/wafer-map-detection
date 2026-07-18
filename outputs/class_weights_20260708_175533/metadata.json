@@ -1,0 +1,36 @@
+{
+    "model_name": "efficientnet_b4",
+    "num_parameters": 17.564753,
+    "num_classes": 9,
+    "class_to_idx": {
+        "Center": 0,
+        "Donut": 1,
+        "Edge-Loc": 2,
+        "Edge-Ring": 3,
+        "Loc": 4,
+        "Near-full": 5,
+        "Random": 6,
+        "Scratch": 7,
+        "none": 8
+    },
+    "img_size": [
+        32,
+        32
+    ],
+    "best_epoch": 18,
+    "best_val_f1": 0.7229472688780642,
+    "per_class_f1": [
+        0.7912388774811773,
+        0.8176795580110497,
+        0.5405651777575206,
+        0.9363478260869565,
+        0.524790236460717,
+        0.9361702127659575,
+        0.7663551401869159,
+        0.24384787472035793,
+        0.9495305164319249
+    ],
+    "train_time_per_epoch": 0.0,
+    "inference_time": 0.0,
+    "val_train_loss_gap": -0.13574991209565757
+}

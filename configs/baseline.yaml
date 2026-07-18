@@ -1,0 +1,18 @@
+experiment_name: baseline
+
+data:
+  image_size: [32, 32]
+  none_cap: null          # no undersampling of 'none' class
+  random_seed: 42
+  test_size: 0.3
+  val_size: 0.5           # fraction of the tmp split used for val
+
+training:
+  mode: single            # single | two_stage
+  epochs: 24
+  lr: 0.001
+  batch_size: 32
+  class_weights: false
+  should_unfreeze_backbone: false
+  unfreeze_epoch: 4
+  backbone_lr_factor: 0.1

@@ -1,0 +1,17 @@
+{
+    "model_name": "efficientnet_b4",
+    "num_classes": 2,
+    "class_to_idx": {
+        "none": 0,
+        "non-none": 1
+    },
+    "img_size": [
+        64,
+        64
+    ],
+    "best_val_f1": 0.9581721868607115,
+    "per_class_f1": [
+        0.9872144872144872,
+        0.9291298865069357
+    ]
+}

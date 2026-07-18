@@ -1,0 +1,18 @@
+experiment_name: with_class_weight
+
+data:
+  image_size: [32, 32]
+  none_cap: 10000         # undersample 'none' to this many samples
+  random_seed: 42
+  test_size: 0.3
+  val_size: 0.5
+
+training:
+  mode: single
+  epochs: 24
+  lr: 0.001
+  batch_size: 32
+  class_weights: true     # compute balanced class weights via sklearn
+  should_unfreeze_backbone: false
+  unfreeze_epoch: 4
+  backbone_lr_factor: 0.1

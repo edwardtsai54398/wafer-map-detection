@@ -1,0 +1,31 @@
+experiment_name: two_stage
+
+data:
+  image_size: [32, 32]
+  random_seed: 42
+  test_size: 0.3
+  val_size: 0.5
+
+training:
+  mode: two_stage
+
+  # Stage 1 – binary: defect vs no-defect (2 classes)
+  stage1:
+    epochs: 12
+    lr: 0.001
+    batch_size: 32
+    class_weights: true
+    should_unfreeze_backbone: false
+    unfreeze_epoch: 4
+    backbone_lr_factor: 0.1
+
+  # Stage 2 – pattern: 8 defect pattern types (none excluded)
+  stage2:
+    epochs: 24
+    lr: 0.001
+    batch_size: 32
+    class_weights: true
+    none_cap: null          # df_with_pattern already has no 'none' rows
+    should_unfreeze_backbone: false
+    unfreeze_epoch: 4
+    backbone_lr_factor: 0.1
