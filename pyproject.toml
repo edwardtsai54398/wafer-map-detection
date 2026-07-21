@@ -1,0 +1,28 @@
+[project]
+name = "wafer-map-detection"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "numpy>=2.4.6",
+    "opencv-python>=4.13.0.92",
+    "pyyaml>=6.0.3",
+    "torch>=2.12.0",
+    "torchvision>=0.27.0",
+]
+
+[dependency-groups]
+backend = [
+    "fastapi>=0.139.2",
+]
+train = [
+    "grad-cam>=1.5.5",
+    "ipykernel>=7.2.0",
+    "kagglehub>=1.0.1",
+    "matplotlib>=3.10.9",
+    "pandas>=3.0.3",
+    "scikit-learn>=1.8.0",
+    "tabulate>=0.10.0",
+    "tqdm>=4.67.3",
+]
