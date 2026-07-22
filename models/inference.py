@@ -1,5 +1,7 @@
 import torch
 import torch.nn.functional as F
+import cv2
+import numpy as np
 
 from data.dataset import LABEL_MAP
 
@@ -102,3 +104,20 @@ def predict_two_stage(model_s1, model_s2, tensor, threshold=0.3):
         model_s2.train()
 
     return class_indices, class_names, scores
+
+
+MEAN = np.array([0.485, 0.456, 0.406], dtype=np.float32).reshape(3, 1, 1)
+STD  = np.array([0.229, 0.224, 0.225], dtype=np.float32).reshape(3, 1, 1)
+
+def wafer_to_tensor(wafer, image_size=(64, 64), device=None):
+    # resize
+    wafer = cv2.resize(wafer, image_size, interpolation=cv2.INTER_NEAREST)
+
+    # 3 kernels
+    wafer = np.stack([wafer] * 3, axis=0).astype(np.float32)
+
+    # normalization
+    wafer = (wafer - MEAN) / STD
+    
+    tensor = torch.from_numpy(wafer)
+    return tensor
