@@ -2247,6 +2247,7 @@ dependencies = [
 [package.dev-dependencies]
 backend = [
     { name = "fastapi", extra = ["standard"] },
+    { name = "pydantic" },
     { name = "uvicorn", extra = ["standard"] },
 ]
 train = [
@@ -2272,6 +2273,7 @@ requires-dist = [
 [package.metadata.requires-dev]
 backend = [
     { name = "fastapi", extras = ["standard"], specifier = ">=0.139.2" },
+    { name = "pydantic", specifier = ">=2.13.4" },
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.51.0" },
 ]
 train = [
