@@ -19,7 +19,17 @@ def get_health():
 
 @app.get("/wafers")
 def get_wafers():
-  return {"list": wafer_json}
+  total_yield = 0
+  total = 0
+  for data in wafer_json:
+    if data["yield"] is not None:
+      total_yield += data["yield"]
+      total += 1
+
+  return {
+    "yield": float(round(total_yield / total, 4)), 
+    "list": wafer_json
+    }
 
 
 Wafer_Value = Literal[0, 1, 2]
