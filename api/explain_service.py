@@ -55,7 +55,14 @@ def explain_wafer(wafer_2d):
       "class_name": final_name,
       "confidence": round(confidence, 4),
     },
-    "scores": {k: round(float(scores[0][v]), 4) for k, v in LABEL_MAP.items()},
+    "scores": sorted(
+    [
+        {"id": v+1, "class": k, "score": round(float(scores[0][v]), 4)}
+        for k, v in LABEL_MAP.items()
+    ],
+    key=lambda x: x["score"],
+    reverse=True,   # 由大到小；升冪就拿掉
+),
     "explanation": {
       "heat_map": np.round(resized_grayscale.astype(np.float64), 2).tolist(),
       "height": orig_h,

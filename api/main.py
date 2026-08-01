@@ -5,6 +5,7 @@ from pydantic import BaseModel, Field, field_validator
 from typing import Annotated, Literal
 
 from api.explain_service import explain_wafer as run_explain
+from data.dataset import LABEL_MAP
 
 WAFER_DATA_PATH = Path(__file__).parent / "wafer.json"
 with open(WAFER_DATA_PATH) as f:
@@ -21,14 +22,22 @@ def get_health():
 def get_wafers():
   total_yield = 0
   total = 0
+  distribution_map = {label: 0 for label in LABEL_MAP}
   for data in wafer_json:
+    distribution_map[data["pred_class"]] += 1
     if data["yield"] is not None:
       total_yield += data["yield"]
       total += 1
 
   return {
     "yield": float(round(total_yield / total, 4)), 
-    "list": wafer_json
+    "list": wafer_json,
+    "total": len(wafer_json),
+    "pattern_distribution": [
+      {"pred_class": k, "count": v}
+      for k, v in distribution_map.items()
+      ],
+      "pred_class": {v+1: k for k, v in LABEL_MAP.items()}
     }
 
 
