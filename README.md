@@ -22,6 +22,10 @@ wafer-map-detection/
 ├── engine/
 │   ├── trainer.py          # run_one_epoch、train_model、print_metrics
 │   └── visualize.py        # plot_history、plot_cm
+├── api/
+│   ├── main.py             # FastAPI 入口：/health、/wafers、/explain
+│   ├── explain_service.py  # 兩階段推論 + Grad-CAM 熱力圖
+│   └── wafer.json          # /wafers 使用的預先推論結果
 ├── configs/                           # train.py CLI 用的 YAML 設定（備用）
 ├── train.py                           # CLI 入口（備用；目前以 notebook 為主）
 └── outputs/                # 每次實驗自動建立的輸出目錄
@@ -135,6 +139,72 @@ outputs/baseline_20260522_143012/
 ```
 
 兩階段訓練會分別在 `stage1/` 與 `stage2/` 子目錄各存一份。
+
+---
+
+## 後端 API
+
+以 FastAPI 提供推論服務（`api/main.py`），模型固定使用 `outputs/two_stage_20260531_110545` 的兩階段權重，於服務啟動時載入。
+
+### `GET /health`
+
+**目的**：健康檢查，確認服務存活。
+
+```json
+{ "status": "ok" }
+```
+
+### `GET /wafers`
+
+**目的**：回傳預先算好的晶圓樣本清單（`api/wafer.json`），供前端列表與統計圖表使用，包含整體良率與缺陷模式分佈。
+
+```json
+{
+  "yield": 0.8621,                  // 所有樣本的平均良率（4 位小數）
+  "total": 60,                      // 樣本總數
+  "list": [
+    {
+      "id": 1,
+      "height": 64,                 // 晶圓圖列數
+      "width": 64,                  // 晶圓圖行數
+      "wafer_map": [[0, 1, 2]],     // 二維陣列：0=晶圓外, 1=良品 die, 2=不良 die
+      "die_total": 3059,            // 晶圓內 die 總數
+      "defect_count": 313,          // 不良 die 數量
+      "yield": 0.8977,              // 單片良率 =(die_total - defect_count) / die_total
+      "pred_class": "none",         // 模型預測的缺陷模式名稱
+      "pred_score": 0.9999          // 該預測類別的信心分數
+    }
+  ],
+  "pattern_distribution": [         // 各缺陷模式的樣本數，固定 9 類皆會出現（無樣本則為 0）
+    { "pred_class": "Center", "count": 5 }
+  ],
+  "pred_class": { "1": "Center", "9": "none" }  // 類別 id（LABEL_MAP index + 1）對照表
+}
+```
+
+### `POST /explain`
+
+**目的**：接收單張晶圓圖，執行兩階段推論並產生 Grad-CAM 熱力圖，說明模型判斷所依據的區域。
+
+**輸入**：`{ "wafer": [[0, 1, 2, ...], ...] }` — 矩形二維陣列，元素僅允許 0/1/2，每邊長 1–2048，各列長度需一致。
+
+```json
+{
+  "prediction": {
+    "class_index": 7,               // LABEL_MAP index（0–8）
+    "class_name": "Scratch",
+    "confidence": 0.9312            // 預測類別的信心分數
+  },
+  "scores": [                       // 9 類分數，依 score 由大到小排序
+    { "id": 8, "class": "Scratch", "score": 0.9312 }
+  ],
+  "explanation": {
+    "heat_map": [[0.0, 0.35]],      // Grad-CAM 熱力值 0–1（2 位小數），已 resize 回原始尺寸
+    "height": 64,
+    "width": 64
+  }
+}
+```
 
 ---
 
