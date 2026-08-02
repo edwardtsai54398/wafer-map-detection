@@ -14,11 +14,12 @@ except ImportError as e:
         "pytorch-grad-cam is required. Install with: pip install grad-cam"
     ) from e
 
+from constant import MEAN, STD
 from data.dataset import extract_labeled_patterned_data
 from models.builder import build_model
 
-_MEAN = np.array([0.485, 0.456, 0.406], dtype=np.float32).reshape(3, 1, 1)
-_STD  = np.array([0.229, 0.224, 0.225], dtype=np.float32).reshape(3, 1, 1)
+_MEAN = np.array(MEAN, dtype=np.float32).reshape(3, 1, 1)
+_STD = np.array(STD, dtype=np.float32).reshape(3, 1, 1)
 
 
 def load_model(output_dir, device=None):

@@ -6,6 +6,12 @@ import torch
 from sklearn.model_selection import train_test_split
 from torch.utils.data import DataLoader, Dataset
 
+from constant import LABEL_MAP, MEAN, STD
+
+_MEAN = np.array(MEAN, dtype=np.float32).reshape(3, 1, 1)
+_STD = np.array(STD, dtype=np.float32).reshape(3, 1, 1)
+
+
 def load_raw_data():
     path = kagglehub.dataset_download("qingyi/wm811k-wafer-map")
     df = pd.read_pickle(f"{path}/LSWMD_v2.pkl")
@@ -130,23 +136,6 @@ def make_dataloaders(datasets, batch_size):
     }
 
 
-# failureType → class index (9 classes including 'none')
-LABEL_MAP = {
-    "Center": 0,
-    "Donut": 1,
-    "Edge-Loc": 2,
-    "Edge-Ring": 3,
-    "Loc": 4,
-    "Near-full": 5,
-    "Random": 6,
-    "Scratch": 7,
-    "none": 8,
-}
-
-# pattern-only label map for stage-2 (8 classes, 'none' excluded)
-PATTERN_LABEL_MAP = {k: v for k, v in LABEL_MAP.items() if k != "none"}
-
-
 def _unwrap_failure_type(v):
     """WM-811K stores failureType as numpy arrays; extract the scalar."""
     if isinstance(v, np.ndarray):
@@ -179,9 +168,6 @@ class WaferDataset(Dataset):
     image_size : (W, H) target resize dimensions.
     """
 
-    _MEAN = np.array([0.485, 0.456, 0.406], dtype=np.float32).reshape(3, 1, 1)
-    _STD  = np.array([0.229, 0.224, 0.225], dtype=np.float32).reshape(3, 1, 1)
-
     def __init__(self, df, label_col="failureType", label_map=LABEL_MAP, image_size=(32, 32)):
         self.df        = df.reset_index(drop=True)
         self.label_col = label_col
@@ -204,7 +190,7 @@ class WaferDataset(Dataset):
         label = self.label_map[row[self.label_col]] if self.label_map is not None else int(row[self.label_col])
 
         wafer = np.stack([wafer] * 3, axis=0).astype(np.float32)
-        wafer = (wafer - self._MEAN) / self._STD
+        wafer = (wafer - _MEAN) / _STD
         return torch.from_numpy(wafer), label
 
     def _resize_wafer(self, wafer_map):

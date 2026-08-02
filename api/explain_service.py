@@ -7,15 +7,15 @@ from pytorch_grad_cam import GradCAM
 from pytorch_grad_cam.utils.model_targets import ClassifierOutputTarget
 sys.path.insert(0, '..')
 
+from constant import LABEL_MAP
 from models.inference import predict_two_stage
 from explain import load_model, preprocess_wafer, get_gradcam_target_layer
-from data.dataset import LABEL_MAP
 
-TWO_STAGE_MODAL_PATH = Path(__file__).parent.parent /"outputs/two_stage_20260531_110545"
+TWO_STAGE_MODEL_PATH = Path(__file__).parent.parent / "outputs/two_stage_20260531_110545"
 
 DEVICE = torch.device("cpu")
-model_s1, metadata_s1 = load_model(TWO_STAGE_MODAL_PATH/"stage1", DEVICE)
-model_s2, metadata_s2 = load_model(TWO_STAGE_MODAL_PATH/"stage2", DEVICE)
+model_s1, metadata_s1 = load_model(TWO_STAGE_MODEL_PATH/"stage1", DEVICE)
+model_s2, metadata_s2 = load_model(TWO_STAGE_MODEL_PATH/"stage2", DEVICE)
 
 target_layer_s1 = get_gradcam_target_layer(model_s1, metadata_s1["img_size"])
 target_layer_s2 = get_gradcam_target_layer(model_s2, metadata_s2["img_size"])

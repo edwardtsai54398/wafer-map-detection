@@ -15,8 +15,9 @@ wafer-map-detection/
 ├── base_loss_train.ipynb              # 單階段訓練（以 loss 最小化為目標）
 ├── with_class_weights_train.ipynb     # 單階段訓練（類別加權 + none undersampling）
 ├── two_stage_train.ipynb              # 兩階段訓練（二元偵測 → 缺陷模式分類）
+├── constant.py             # 跨模組共用常數（零 import）：LABEL_MAP、MEAN/STD、MODELS
 ├── data/
-│   └── dataset.py          # WaferDataset、extract_labeled_patterned_data、LABEL_MAP
+│   └── dataset.py          # WaferDataset、extract_labeled_patterned_data
 ├── models/
 │   └── builder.py          # replace_head、build_model
 ├── engine/

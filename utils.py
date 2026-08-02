@@ -6,6 +6,7 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import torch
 
+from constant import DEFAULT_MODEL_NAME
 from engine.visualize import plot_cm, plot_history
 
 
@@ -35,7 +36,7 @@ def make_output_dir(experiment_name, base="outputs"):
 
 
 def save_results(out_dir, model, best_state, best_f1, best_cm, best_f1_per_class,
-                history, num_classes, label_map, image_size,train_time_per_epoch=0.0, inference_time=0.0, model_name="efficientnet_b4"):
+                history, num_classes, label_map, image_size,train_time_per_epoch=0.0, inference_time=0.0, model_name=DEFAULT_MODEL_NAME):
     model.load_state_dict(best_state)
 
     # 找出best_epoch

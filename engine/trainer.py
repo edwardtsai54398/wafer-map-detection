@@ -14,6 +14,8 @@ from tabulate import tabulate
 from torch.optim import AdamW
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 
+from constant import CLASS_NAMES
+
 
 def run_one_epoch(model, device, loader, criterion, optimizer=None, num_classes=9, threshold=None):
     """
@@ -168,9 +170,6 @@ def train_model(
             break
 
     return best_state, best_score, best_cm, best_f1_per_class, history
-
-
-CLASS_NAMES = ["Center", "Donut", "Edge-Loc", "Edge-Ring", "Loc", "Near-full", "Random", "Scratch", "none"]
 
 
 def print_per_class_f1(per_class_f1, class_names=None):

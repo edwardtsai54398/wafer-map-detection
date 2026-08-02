@@ -5,7 +5,7 @@ from pydantic import BaseModel, Field, field_validator
 from typing import Annotated, Literal
 
 from api.explain_service import explain_wafer as run_explain
-from data.dataset import LABEL_MAP
+from constant import LABEL_MAP
 
 WAFER_DATA_PATH = Path(__file__).parent / "wafer.json"
 with open(WAFER_DATA_PATH) as f:

@@ -3,9 +3,13 @@ import torch.nn.functional as F
 import cv2
 import numpy as np
 
-from data.dataset import LABEL_MAP
+from constant import IDX_TO_CLASS, MEAN, STD
 
-_IDX_TO_CLASS = {v: k for k, v in LABEL_MAP.items()}
+_MEAN = np.array(MEAN, dtype=np.float32).reshape(3, 1, 1)
+_STD = np.array(STD, dtype=np.float32).reshape(3, 1, 1)
+
+# stage-1 non-none probability threshold for two-stage inference
+TWO_STAGE_THRESHOLD = 0.3
 
 
 @torch.no_grad()
@@ -43,7 +47,7 @@ def predict(model, tensor, idx_to_class=None):
 
 
 @torch.no_grad()
-def predict_two_stage(model_s1, model_s2, tensor, threshold=0.3):
+def predict_two_stage(model_s1, model_s2, tensor, threshold=TWO_STAGE_THRESHOLD):
     """Two-stage inference for none vs. pattern classification.
 
     Stage 1 is a binary model (none=0, non-none=1).
@@ -95,7 +99,7 @@ def predict_two_stage(model_s1, model_s2, tensor, threshold=0.3):
     else:
         class_indices = scores.argmax(dim=1)
 
-    class_names = [_IDX_TO_CLASS[int(i)] for i in class_indices]
+    class_names = [IDX_TO_CLASS[int(i)] for i in class_indices]
 
     # restore training state
     if s1_was_training:
@@ -106,9 +110,6 @@ def predict_two_stage(model_s1, model_s2, tensor, threshold=0.3):
     return class_indices, class_names, scores
 
 
-MEAN = np.array([0.485, 0.456, 0.406], dtype=np.float32).reshape(3, 1, 1)
-STD  = np.array([0.229, 0.224, 0.225], dtype=np.float32).reshape(3, 1, 1)
-
 def wafer_to_tensor(wafer, image_size=(64, 64), device=None):
     # resize
     wafer = cv2.resize(wafer, image_size, interpolation=cv2.INTER_NEAREST)
@@ -117,7 +118,7 @@ def wafer_to_tensor(wafer, image_size=(64, 64), device=None):
     wafer = np.stack([wafer] * 3, axis=0).astype(np.float32)
 
     # normalization
-    wafer = (wafer - MEAN) / STD
+    wafer = (wafer - _MEAN) / _STD
     
     tensor = torch.from_numpy(wafer)
     return tensor

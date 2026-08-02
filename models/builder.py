@@ -1,16 +1,13 @@
 import torch.nn as nn
 from torchvision.models import efficientnet_b4, EfficientNet_B4_Weights, efficientnet_b2, EfficientNet_B2_Weights, efficientnet_b0, EfficientNet_B0_Weights
 
-_MODEL_REGISTRY = {
-    "efficientnet_b4": (efficientnet_b4, EfficientNet_B4_Weights.IMAGENET1K_V1),
-    "efficientnet_b2": (efficientnet_b2, EfficientNet_B2_Weights.IMAGENET1K_V1),
-    "efficientnet_b0": (efficientnet_b0, EfficientNet_B0_Weights.IMAGENET1K_V1),
+from constant import DEFAULT_MODEL_NAME, MODELS
 
-}
-MODELS = {
-    "EFFICIENTNET_B4": "efficientnet_b4",
-    "EFFICIENTNET_B2": "efficientnet_b2",
-    "EFFICIENTNET_B0": "efficientnet_b0",
+# model name → (constructor, pretrained weights)
+_MODEL_REGISTRY = {
+    MODELS["EFFICIENTNET_B4"]: (efficientnet_b4, EfficientNet_B4_Weights.IMAGENET1K_V1),
+    MODELS["EFFICIENTNET_B2"]: (efficientnet_b2, EfficientNet_B2_Weights.IMAGENET1K_V1),
+    MODELS["EFFICIENTNET_B0"]: (efficientnet_b0, EfficientNet_B0_Weights.IMAGENET1K_V1),
 }
 
 
@@ -25,7 +22,7 @@ def replace_head(model, num_classes):
     return model
 
 
-def build_model(num_classes, device, model_name="efficientnet_b4"):
+def build_model(num_classes, device, model_name=DEFAULT_MODEL_NAME):
     """Return a model with a custom classification head on device."""
     if model_name not in _MODEL_REGISTRY:
         raise ValueError(f"Unknown model '{model_name}'. Available: {list(_MODEL_REGISTRY)}")
