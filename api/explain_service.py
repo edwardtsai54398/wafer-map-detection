@@ -3,13 +3,13 @@ from pathlib import Path
 import torch
 import numpy as np
 import cv2
-from pytorch_grad_cam import GradCAM
+from pytorch_grad_cam.grad_cam import GradCAM
 from pytorch_grad_cam.utils.model_targets import ClassifierOutputTarget
 sys.path.insert(0, '..')
 
 from constant import LABEL_MAP
 from models.inference import predict_two_stage
-from explain import load_model, preprocess_wafer, get_gradcam_target_layer
+from explain.core import load_model, preprocess_wafer, get_gradcam_target_layer
 
 TWO_STAGE_MODEL_PATH = Path(__file__).parent.parent / "outputs/two_stage_20260531_110545"
 

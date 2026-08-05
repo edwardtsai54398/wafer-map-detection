@@ -22,11 +22,11 @@ def replace_head(model, num_classes):
     return model
 
 
-def build_model(num_classes, device, model_name=DEFAULT_MODEL_NAME):
+def build_model(num_classes, device, model_name=DEFAULT_MODEL_NAME, pretrained=True):
     """Return a model with a custom classification head on device."""
     if model_name not in _MODEL_REGISTRY:
         raise ValueError(f"Unknown model '{model_name}'. Available: {list(_MODEL_REGISTRY)}")
     model_fn, weights = _MODEL_REGISTRY[model_name]
-    model = model_fn(weights=weights)
+    model = model_fn(weights=weights if pretrained else None)
     model = replace_head(model, num_classes)
     return model.to(device)

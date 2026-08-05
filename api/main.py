@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field, field_validator
 from typing import Annotated, Literal
 
@@ -12,6 +13,13 @@ with open(WAFER_DATA_PATH) as f:
   wafer_json = json.load(f)
 
 app = FastAPI()
+
+app.add_middleware(
+  CORSMiddleware,
+  allow_origins=["*"],
+  allow_methods=["*"],
+  allow_headers=["*"]
+)
 
 
 @app.get("/health")
