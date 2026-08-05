@@ -6,10 +6,7 @@ readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "numpy>=2.4.6",
-    "opencv-python>=4.13.0.92",
-    "pyyaml>=6.0.3",
-    "torch>=2.12.0",
-    "torchvision>=0.27.0",
+    "opencv-python-headless>=4.13.0",
 ]
 
 [dependency-groups]
@@ -17,9 +14,11 @@ backend = [
     "fastapi[standard]>=0.139.2",
     "pydantic>=2.13.4",
     "uvicorn[standard]>=0.51.0",
+    "torch>=2.12.0",
+    "torchvision>=0.27.0",
+    "grad-cam>=1.5.5",
 ]
 train = [
-    "grad-cam>=1.5.5",
     "ipykernel>=7.2.0",
     "kagglehub>=1.0.1",
     "matplotlib>=3.10.9",
@@ -27,4 +26,27 @@ train = [
     "scikit-learn>=1.8.0",
     "tabulate>=0.10.0",
     "tqdm>=4.67.3",
+    "torch>=2.12.0",
+    "torchvision>=0.27.0",
+    "grad-cam>=1.5.5",
 ]
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[tool.uv]
+# grad-cam 硬依賴 GUI 版 cv2，排除避免與 headless 重複安裝
+override-dependencies = [
+    "opencv-python ; platform_system == 'Never'"
+]
+# backend / train 的 torch 來自不同 index，必須宣告互斥
+conflicts = [
+    [{ group = "backend" }, { group = "train" }],
+]
+
+# 只有 backend group 的 torch 走 CPU-only wheel
+[tool.uv.sources]
+torch = [{ index = "pytorch-cpu", group = "backend" }]
+torchvision = [{ index = "pytorch-cpu", group = "backend" }]

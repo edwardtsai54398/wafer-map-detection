@@ -1,0 +1,5 @@
+services:
+  wafer-detection-api:
+    build: .
+    ports: 
+      - "82:8080"
