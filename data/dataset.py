@@ -189,9 +189,55 @@ class WaferDataset(Dataset):
 
         label = self.label_map[row[self.label_col]] if self.label_map is not None else int(row[self.label_col])
 
-        wafer = np.stack([wafer] * 3, axis=0).astype(np.float32)
+        wafer = np.stack([wafer] * 3, axis=0).astype(np.float32) / 2.0
         wafer = (wafer - _MEAN) / _STD
         return torch.from_numpy(wafer), label
+
+    def _resize_wafer(self, wafer_map):
+        return cv2.resize(
+            wafer_map, self.image_size, interpolation=cv2.INTER_NEAREST
+        ).astype(np.uint8)
+
+
+class WaferSimpleDataset(Dataset):
+    """
+    1-channel wafer-map dataset for small from-scratch models (e.g. SimpleCNN).
+
+    Unlike WaferDataset, this does not stack to 3 channels or apply ImageNet
+    normalization (those exist for pretrained backbones). Pixels are scaled
+    to [0, 1].
+
+    Parameters
+    ----------
+    df         : DataFrame containing "waferMap" and the label column.
+    label_col  : Column to use as label.
+    label_map  : Dict mapping str label → int index.
+                 If None the column value is cast to int directly.
+    image_size : (W, H) target resize dimensions.
+    """
+
+    def __init__(self, df, label_col="failureType", label_map=LABEL_MAP, image_size=(32, 32)):
+        self.df        = df.reset_index(drop=True)
+        self.label_col = label_col
+        self.label_map = label_map
+        self.image_size = image_size
+
+        if label_map is not None:
+            self.targets = self.df[label_col].map(label_map).values
+        else:
+            self.targets = self.df[label_col].astype(int).values
+
+    def __len__(self):
+        return len(self.df)
+
+    def __getitem__(self, idx):
+        row = self.df.iloc[idx]
+        wafer = self._resize_wafer(row["waferMap"])
+
+        label = self.label_map[row[self.label_col]] if self.label_map is not None else int(row[self.label_col])
+
+        wafer = torch.from_numpy(wafer.astype(np.float32)).unsqueeze(0) / 2.0
+        return wafer, label
 
     def _resize_wafer(self, wafer_map):
         return cv2.resize(

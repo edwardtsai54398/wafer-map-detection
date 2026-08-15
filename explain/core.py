@@ -132,3 +132,16 @@ def preprocess_wafer(wafer_map, img_size, device):
     img = (img - _MEAN) / _STD
     tensor = torch.from_numpy(img).unsqueeze(0).to(device)
     return tensor, rgb
+
+
+def preprocess_wafer_simple(wafer_map, img_size, device):
+   
+    w, h = img_size[0], img_size[1]
+    resized = cv2.resize(
+        np.array(wafer_map), (w, h), interpolation=cv2.INTER_NEAREST
+    ).astype(np.uint8)
+
+    gray = resized.astype(np.float32) / 2.0  # (H, W) in [0, 1] for overlay
+
+    tensor = torch.from_numpy(gray).unsqueeze(0).unsqueeze(0).to(device)  # (1, 1, H, W)
+    return tensor, gray
