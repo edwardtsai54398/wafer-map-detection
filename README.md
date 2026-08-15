@@ -41,8 +41,12 @@ wafer-map-detection/
 
 ## 環境安裝
 
+依賴以 [uv](https://docs.astral.sh/uv/) 管理，切成 `backend`（FastAPI 服務）與 `train`（notebook 訓練）兩個 dependency group，皆使用 CPU-only 版 PyTorch，可視需要單獨或同時安裝：
+
 ```bash
-pip install -r requirements.txt
+uv sync --group backend            # 只跑 API
+uv sync --group train              # 只跑訓練 notebook
+uv sync --group backend --group train   # 開發時兩者都要（同一份 venv）
 ```
 
 > 需要 Kaggle API Token 才能透過 `kagglehub` 下載資料集。至 Kaggle 網站 Settings → API → Create New Token，依指示執行：

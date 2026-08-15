@@ -41,12 +41,8 @@ explicit = true
 override-dependencies = [
     "opencv-python ; platform_system == 'Never'"
 ]
-# backend / train 的 torch 來自不同 index，必須宣告互斥
-conflicts = [
-    [{ group = "backend" }, { group = "train" }],
-]
 
-# 只有 backend group 的 torch 走 CPU-only wheel
+# backend / train 的 torch 統一走 CPU-only wheel，兩組可同時安裝
 [tool.uv.sources]
-torch = [{ index = "pytorch-cpu", group = "backend" }]
-torchvision = [{ index = "pytorch-cpu", group = "backend" }]
+torch = [{ index = "pytorch-cpu" }]
+torchvision = [{ index = "pytorch-cpu" }]

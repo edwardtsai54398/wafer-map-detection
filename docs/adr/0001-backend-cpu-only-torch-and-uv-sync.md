@@ -1,7 +1,7 @@
 # ADR-0001：後端以 CPU-only PyTorch 部署，容器建置直接用 `uv sync`
 
 - 狀態：已採用（Accepted）
-- 日期：2026-08-05
+- 日期：2026-08-05（決策一已於 2026-08-15 更新，見下）
 - 影響範圍：`pyproject.toml`、`uv.lock`、`Dockerfile`、`docker-compose.yml`
 
 ---
@@ -24,9 +24,12 @@
 `pyproject.toml` 中：
 
 - 分成 `backend`（fastapi、uvicorn、torch、torchvision、grad-cam）與 `train`（notebook 與分析工具 + torch、torchvision、grad-cam）兩個 group。
-- 宣告 explicit index `pytorch-cpu = https://download.pytorch.org/whl/cpu`，並在 `[tool.uv.sources]` 中**只針對 `backend` group** 把 `torch` / `torchvision` 指向該 index。
-- 因為同一個套件在兩個 group 來自不同 registry，無法存在於同一組解析結果，必須宣告 `conflicts = [[{group = "backend"}, {group = "train"}]]`。
+- 宣告 explicit index `pytorch-cpu = https://download.pytorch.org/whl/cpu`，並在 `[tool.uv.sources]` 中把 `torch` / `torchvision` 指向該 index。
 - 附帶：`grad-cam` 硬依賴 GUI 版 `opencv-python`，用 `override-dependencies` 把它排除，避免與專案本身的 `opencv-python-headless` 重複安裝。
+
+> **2026-08-15 更新**：`pytorch-cpu` index 原本只綁定 `backend` group，`train` group 的 torch 走預設 PyPI 來源（保留 GPU 機器跑 notebook 的 CUDA 能力）。因為同一套件在兩個 group 來自不同 registry，uv 無法在同一次解析中共存，當時另外宣告了 `conflicts = [[{group = "backend"}, {group = "train"}]]`，代價是兩個 group 不能同時 `sync`，開發時要碰兩邊程式碼（例如 `explain_service.py`）得切換 venv。
+>
+> 現在把 `train` 也改綁 `pytorch-cpu`，兩個 group 來源一致，`conflicts` 隨之移除，可以 `uv sync --group backend --group train` 用同一份 venv 開發。代價是 **`train` group 在 Linux/Windows 上失去 CUDA 支援**——[base_train.ipynb](../../train/base_train.ipynb) 等 notebook 裡 `torch.cuda.is_available()` 會恆為 `False`。macOS 不受影響（`pytorch-cpu` index 對 `sys_platform == 'darwin'` 解析出的仍是一般版 `torch`，MPS 照常可用）。需要 CUDA 訓練時，仍可用預設 PyPI 來源另外裝一份 GPU 版 torch（例如非 uv 管理的環境，或 Kaggle/Colab 這類雲端 GPU 筆記本），本 repo 的 `uv sync --group train` 僅保證 CPU 可跑。
 
 ### 決策二：容器內直接 `uv sync`，不產生也不 commit requirements.txt
 
@@ -91,7 +94,7 @@ Linux 容器命中的是 `+cpu` 那行，pip 只會去 PyPI 找，而 PyPI 上�
 - 映像需要 uv 本身。目前用 `RUN pip install uv`，**版本沒有鎖定**，build 結果不是完全可重現；之後可改成 `COPY --from=ghcr.io/astral-sh/uv:<version>` 或 pin 版本。
 - `uv sync` 產出的是 `/app/.venv`，所以 `CMD` 必須寫 `.venv/bin/uvicorn`（或改設 `ENV PATH="/app/.venv/bin:$PATH"`）。
 - 目前是單階段 build，uv 與 uv cache 都留在最終映像裡，尚未做 multi-stage 瘦身。
-- `train` 與 `backend` 宣告為 conflicts，代表**不能同時 sync 兩個 group**；本機訓練與後端開發要切換環境。
+- ~~`train` 與 `backend` 宣告為 conflicts，代表不能同時 sync 兩個 group；本機訓練與後端開發要切換環境。~~ 已於 2026-08-15 解除（見上方決策一更新），代價轉為 `train` group 在 Linux/Windows 上無法使用 CUDA。
 
 ## 相關
 
