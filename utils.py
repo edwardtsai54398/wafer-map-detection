@@ -1,13 +1,24 @@
 import json
+import os
+import random
 import time
 from datetime import datetime
 from pathlib import Path
 
 import matplotlib.pyplot as plt
+import numpy as np
 import torch
 
 from constant import DEFAULT_MODEL_NAME
 from engine.visualize import plot_cm, plot_history
+
+
+def set_seed(seed):
+    os.environ["PYTHONHASHSEED"] = str(seed)
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
 
 
 class EpochTimer:
@@ -35,12 +46,12 @@ def make_output_dir(experiment_name, base="outputs"):
     return out
 
 
-def save_results(out_dir, model, best_state, best_f1, best_cm, best_f1_per_class,
+def save_results(out_dir, model, best_state, best_val_f1, test_f1, test_cm, test_f1_per_class,
                 history, num_classes, label_map, image_size,train_time_per_epoch=0.0, inference_time=0.0, model_name=DEFAULT_MODEL_NAME):
     model.load_state_dict(best_state)
 
     # 找出best_epoch
-    best_epoch = next(i for i in range(len(history)) if history[i]["val_f1"] == best_f1)
+    best_epoch = next(i for i in range(len(history)) if history[i]["val_f1"] == best_val_f1)
 
     # 參數量
     num_parameters = sum(p.numel() for p in model.parameters()) / 1e6  # 單位：M
@@ -58,8 +69,9 @@ def save_results(out_dir, model, best_state, best_f1, best_cm, best_f1_per_class
         "class_to_idx": label_map,
         "img_size":     list(image_size),
         "best_epoch": best_epoch,
-        "best_val_f1":  best_f1,
-        "per_class_f1": best_f1_per_class.tolist() if best_f1_per_class is not None else [],
+        "best_val_f1":  best_val_f1,
+        "test_f1": test_f1,
+        "test_f1_per_class": test_f1_per_class.tolist() if test_f1_per_class is not None else [],
         "train_time_per_epoch": train_time_per_epoch,
         "inference_time": inference_time,
         "val_train_loss_gap": val_train_loss_gap
@@ -67,12 +79,15 @@ def save_results(out_dir, model, best_state, best_f1, best_cm, best_f1_per_class
     with open(out_dir / "metadata.json", "w") as f:
         json.dump(metadata, f, indent=4)
 
+    with open(out_dir / "training_history.json", "w") as f:
+        json.dump(history, f, indent=4)
+
     history_fig = plot_history(history)
     history_fig.savefig(out_dir / "training_curves.png", dpi=150)
     plt.close(history_fig)
 
-    if best_cm is not None:
-        cm_fig = plot_cm(best_cm, num_classes)
+    if test_cm is not None:
+        cm_fig = plot_cm(test_cm, num_classes)
         cm_fig.savefig(out_dir / "confusion_matrix.png", dpi=150)
         plt.close(cm_fig)
 
