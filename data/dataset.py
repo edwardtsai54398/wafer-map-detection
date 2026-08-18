@@ -1,3 +1,7 @@
+import os
+import pickle
+import sys
+
 import numpy as np
 import cv2
 import kagglehub
@@ -12,9 +16,45 @@ _MEAN = np.array(MEAN, dtype=np.float32).reshape(3, 1, 1)
 _STD = np.array(STD, dtype=np.float32).reshape(3, 1, 1)
 
 
+def _load_legacy_lswmd_pickle(pkl_path):
+    """Load the original WM-811K LSWMD.pkl.
+
+    The file was pickled under a pre-1.0 pandas (module layout
+    ``pandas.indexes.*``, Python 2 str objects) so it can't be read directly
+    with a current pandas/Python. Shim the old module paths to their current
+    equivalents and unpickle with the Python-2-compatible ``latin1`` encoding.
+    """
+    import pandas.core.indexes.base as _idx_base
+    import pandas.core.indexes.range as _idx_range
+
+    added = {
+        "pandas.indexes": _idx_base,
+        "pandas.indexes.base": _idx_base,
+        "pandas.indexes.range": _idx_range,
+    }
+    previous = {name: sys.modules.get(name) for name in added}
+    sys.modules.update(added)
+    try:
+        with open(pkl_path, "rb") as f:
+            return pickle.load(f, encoding="latin1")
+    finally:
+        for name, mod in previous.items():
+            if mod is None:
+                sys.modules.pop(name, None)
+            else:
+                sys.modules[name] = mod
+
+
 def load_raw_data():
     path = kagglehub.dataset_download("qingyi/wm811k-wafer-map")
-    df = pd.read_pickle(f"{path}/LSWMD_v2.pkl")
+    v2_path = f"{path}/LSWMD_v2.pkl"
+
+    if os.path.exists(v2_path):
+        df = pd.read_pickle(v2_path)
+    else:
+        df = _load_legacy_lswmd_pickle(f"{path}/LSWMD.pkl")
+        df.to_pickle(v2_path)
+
     df["failureType"] = df["failureType"].apply(
         lambda x: x[0][0] if isinstance(x, np.ndarray) and x.size > 0 else x
     )
