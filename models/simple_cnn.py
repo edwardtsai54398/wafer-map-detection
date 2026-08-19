@@ -7,6 +7,11 @@ def conv_block(in_channels, out_channels, kernel_size=3, padding=1, stride=1):
         nn.Conv2d(in_channels, out_channels, kernel_size=kernel_size, stride=stride, padding=padding),
         nn.BatchNorm2d(out_channels),
         nn.ReLU(inplace=True),
+
+        nn.Conv2d(out_channels, out_channels, kernel_size=kernel_size, stride=stride, padding=padding),
+        nn.BatchNorm2d(out_channels),
+        nn.ReLU(inplace=True),
+        
         nn.MaxPool2d(kernel_size=2),
     )
 
@@ -25,6 +30,7 @@ class SimpleCNN(nn.Module):
         self.head = nn.Sequential(
             nn.AdaptiveAvgPool2d(1),
             nn.Flatten(),
+            nn.Dropout(p=0.35),
             nn.Linear(128, num_classes),
         )
 
