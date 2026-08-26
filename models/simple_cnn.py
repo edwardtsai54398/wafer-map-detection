@@ -22,16 +22,18 @@ class SimpleCNN(nn.Module):
     def __init__(self, num_classes, in_channels=1):
         super().__init__()
         self.features = nn.Sequential(
-            conv_block(in_channels, 16),
-            conv_block(16, 32),
+            conv_block(in_channels, 32),
+            # conv_block(in_channels, 16),
+            # conv_block(16, 32),
             conv_block(32, 64),
             conv_block(64, 128),
+            conv_block(128, 256),
         )
         self.head = nn.Sequential(
             nn.AdaptiveAvgPool2d(1),
             nn.Flatten(),
             nn.Dropout(p=0.35),
-            nn.Linear(128, num_classes),
+            nn.Linear(256, num_classes),
         )
 
     def forward(self, x):

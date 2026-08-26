@@ -163,6 +163,24 @@ def augment_minority_classes(
     return result.sample(frac=1, random_state=random_seed).reset_index(drop=True)
 
 
+def augment_selected_classes(
+    train_df,
+    classes,
+    target_count=None,
+    label_col="failureType",
+    random_seed=42,
+):
+    
+    exclude = [c for c in train_df[label_col].unique() if c not in classes]
+    return augment_minority_classes(
+        train_df,
+        target_count=target_count,
+        label_col=label_col,
+        exclude=exclude,
+        random_seed=random_seed,
+    )
+
+
 def make_dataloaders(datasets, batch_size):
     return {
         split: DataLoader(
