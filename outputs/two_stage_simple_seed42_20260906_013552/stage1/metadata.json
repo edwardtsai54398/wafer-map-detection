@@ -1,0 +1,23 @@
+{
+    "model_name": "simple_cnn",
+    "num_parameters": 0.29445,
+    "num_classes": 2,
+    "class_to_idx": {
+        "none": 0,
+        "non-none": 1
+    },
+    "img_size": [
+        64,
+        64
+    ],
+    "best_epoch": 1,
+    "best_val_f1": 0.9575579559841549,
+    "test_f1": 0.9576556099933358,
+    "test_f1_per_class": [
+        0.9876866176536918,
+        0.9276246023329798
+    ],
+    "train_time_per_epoch": 0.0,
+    "inference_time": 0.0,
+    "val_train_loss_gap": 0.01949866773449356
+}

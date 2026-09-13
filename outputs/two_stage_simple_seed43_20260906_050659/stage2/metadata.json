@@ -1,0 +1,36 @@
+{
+    "model_name": "simple_cnn",
+    "num_parameters": 0.295224,
+    "num_classes": 8,
+    "class_to_idx": {
+        "Center": 0,
+        "Donut": 1,
+        "Edge-Loc": 2,
+        "Edge-Ring": 3,
+        "Loc": 4,
+        "Near-full": 5,
+        "Random": 6,
+        "Scratch": 7,
+        "none": 8
+    },
+    "img_size": [
+        64,
+        64
+    ],
+    "best_epoch": 31,
+    "best_val_f1": 0.9066570800407416,
+    "test_f1": 0.9046040628695577,
+    "test_f1_per_class": [
+        0.9619860356865787,
+        0.8846153846153846,
+        0.9149746192893401,
+        0.9820565907522429,
+        0.8605504587155963,
+        0.8571428571428571,
+        0.9224806201550387,
+        0.8530259365994236
+    ],
+    "train_time_per_epoch": 0.0,
+    "inference_time": 0.0,
+    "val_train_loss_gap": 0.27893826911830877
+}

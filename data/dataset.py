@@ -53,7 +53,13 @@ def load_raw_data():
         df = pd.read_pickle(v2_path)
     else:
         df = _load_legacy_lswmd_pickle(f"{path}/LSWMD.pkl")
-        df.to_pickle(v2_path)
+        try:
+            df.to_pickle(v2_path)
+        except OSError as e:
+            # Colab/Kaggle mount kagglehub datasets read-only, so the v2 cache
+            # can't live next to the source. Skip it — the caller is expected
+            # to cache the parsed frame somewhere writable.
+            print(f"[warn] 無法寫入 {v2_path}（{e.strerror}），略過 v2 快取")
 
     df["failureType"] = df["failureType"].apply(
         lambda x: x[0][0] if isinstance(x, np.ndarray) and x.size > 0 else x
@@ -113,9 +119,10 @@ def augment_minority_classes(
     Parameters
     ----------
     train_df     : DataFrame with a "waferMap" column and ``label_col``.
-    target_count : Desired number of samples per minority class. Defaults to
-                   the size of the largest non-excluded class. The effective
-                   per-class target is capped at 6x the class's original size.
+    target_count : Desired number of samples per minority class. Must be
+                   supplied by the caller; when omitted, every non-excluded
+                   class is grown to the full 6x its original size. The
+                   effective per-class target is always capped at 6x.
     label_col    : Column holding the class label.
     exclude      : Labels that should not be augmented (e.g. the "none" class).
     random_seed  : Seed for reproducible sampling/augmentation choices.
@@ -131,15 +138,15 @@ def augment_minority_classes(
 
     counts = train_df[label_col].value_counts()
     eligible = counts.drop(labels=[c for c in exclude if c in counts.index])
-    if target_count is None:
-        target_count = int(eligible.max())
 
     augmented_rows = []
     for label, count in eligible.items():
         count = int(count)
         # One round of augmentation adds at most n_aug unique variants per
         # original sample, so the class can reach at most (1 + n_aug)x its size.
-        effective_target = min(target_count, count * (1 + n_aug))
+        # Without an explicit target, every class is grown to that full cap.
+        max_target = count * (1 + n_aug)
+        effective_target = max_target if target_count is None else min(target_count, max_target)
         n_needed = effective_target - count
         if n_needed <= 0:
             continue
@@ -170,7 +177,11 @@ def augment_selected_classes(
     label_col="failureType",
     random_seed=42,
 ):
-    
+    """Run ``augment_minority_classes`` on ``classes`` only.
+
+    Every other label is excluded, so with ``target_count=None`` each of the
+    selected classes grows to the full 6x its original size.
+    """
     exclude = [c for c in train_df[label_col].unique() if c not in classes]
     return augment_minority_classes(
         train_df,
